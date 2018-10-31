@@ -17,8 +17,24 @@ class Scraper
       end
 
 
-  def self.scrape_profile_page(profile_url)
+      def self.scrape_profile_page(profile_url)
+        doc = Nokogiri::HTML(open(profile_url))
+        profile_info = {}
 
-  end
+        doc.css("div.vitals-container div.social-icon-container a").each do |site|
+          media_type = site.css("img").attribute("src").value.split("/").last.gsub("-icon.png", "")
+          media_link = site.attribute("href").value
+          if media_type == "rss"
+            profile_info[:blog] = media_link
+          else
+            profile_info[media_type.to_sym] = media_link unless media_type == "facebook.png"
+          end
+        end
+
+        profile_info[:profile_quote] = doc.css("div.profile-quote").text
+        profile_info[:bio] = doc.css("div.description-holder p").text
+
+        profile_info
+      end
 
 end
